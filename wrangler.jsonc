@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "smashcat-dev",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-12",
+
+  // public/ を静的アセットとして配信する。src/index.js が env.ASSETS 経由で
+  // 参照するため、run_worker_first ではなく Worker を先に通す既定のままでよい。
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+
+  // smashcat.dev を Cloudflare に委任し、ゾーンを有効にしてから deploy する。
+  // apex と www の両方を受ける。
+  "routes": [
+    { "pattern": "smashcat.dev/*", "zone_name": "smashcat.dev" },
+    { "pattern": "www.smashcat.dev/*", "zone_name": "smashcat.dev" }
+  ]
+}

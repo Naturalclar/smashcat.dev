@@ -1,0 +1,16 @@
+{
+  "name": "smashcat.dev",
+  "version": "0.0.1",
+  "description": "Root site for smashcat.dev",
+  "license": "MIT",
+  "author": "Jesse Katsumata <jesse.katsumata@gmail.com>",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.122.0"
+  }
+}
