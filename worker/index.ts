@@ -1,17 +1,22 @@
 /**
  * smashcat.dev のルーティング。
  *
- * ルート直下は public/ の静的アセットを配信し、/medley-generator/ 以下だけを
+ * ルート直下は Vite のビルド成果物 (dist/) を配信し、/medley-generator/ 以下だけを
  * GitHub Pages にプロキシする。GitHub Pages は Host ヘッダを見て配信サイトを
  * 決めるため、単に転送するのではなく上流のURLを組み直す必要がある。
  */
 
+type Env = {
+  ASSETS: Fetcher
+}
+
 /**
  * プロキシ先のオリジン。
  *
- * naturalclar.github.io は現在 CNAME (naturalclar.dev) の影響でリダイレクトを
- * 返す可能性がある。下の fetch は redirect: 'follow' なので追従するが、
- * 実際に 200 を返すオリジンをここに直接指定した方が一手減って速い。
+ * naturalclar.github.io は Naturalclar/naturalclar.github.io に残っている CNAME
+ * (naturalclar.dev) の影響でリダイレクトを返す可能性がある。下の fetch は
+ * redirect: 'follow' なので追従するが、実際に 200 を返すオリジンを直接
+ * 指定した方が一手減る。
  *
  *   curl -i https://naturalclar.github.io/medley-generator/ | head -20
  */
@@ -20,10 +25,10 @@ const MEDLEY_ORIGIN = 'https://naturalclar.github.io'
 /** medley-generator の vite base と一致させること。 */
 const MEDLEY_PREFIX = '/medley-generator'
 
-/** 上流から引き継ぐと壊れる、あるいは引き継ぐ意味がないヘッダ。 */
+/** 上流に引き継ぐと壊れる、あるいは引き継ぐ意味がないヘッダ。 */
 const STRIPPED_REQUEST_HEADERS = ['host', 'cf-connecting-ip', 'cf-ray']
 
-async function proxyToMedley(request, url) {
+async function proxyToMedley(request: Request, url: URL): Promise<Response> {
   const upstream = new URL(url.pathname + url.search, MEDLEY_ORIGIN)
 
   // 元のリクエストヘッダをそのまま渡すと Host が smashcat.dev のままになり、
@@ -33,10 +38,11 @@ async function proxyToMedley(request, url) {
     headers.delete(name)
   }
 
+  const hasBody = request.method !== 'GET' && request.method !== 'HEAD'
   const response = await fetch(upstream, {
     method: request.method,
     headers,
-    body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
+    body: hasBody ? request.body : undefined,
     redirect: 'follow',
   })
 
@@ -53,7 +59,7 @@ async function proxyToMedley(request, url) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
 
     // 末尾スラッシュなしだと、ビルド済みアセットの相対解決が一つ上の階層に
