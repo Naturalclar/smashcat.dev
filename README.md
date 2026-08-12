@@ -1,8 +1,58 @@
 # smashcat.dev
 
-`smashcat.dev` のルートサイト。Cloudflare Workers 上で動く。
+配信活動の紹介サイト。プロフィール、配信先へのリンク、いただいたファンアートを置く。
 
-## 構成
+Vite + React + TypeScript でビルドし、Cloudflare Workers 上で配信する。
+
+## 開発
+
+```sh
+pnpm install
+pnpm dev          # Vite の開発サーバ (プロキシは効かない)
+pnpm lint
+pnpm build        # tsc -b && vite build → dist/
+pnpm worker:dev   # ビルドしてから Worker 込みで起動 (プロキシも効く)
+```
+
+`/medley-generator/` の動作まで確認したいときは `pnpm dev` ではなく
+`pnpm worker:dev` を使う。前者は Vite だけなので Worker のルーティングを通らない。
+
+## 内容の編集
+
+サイトに出る文言・リンク・ファンアートは
+[`src/data/profile.ts`](src/data/profile.ts) に集約してある。表示側
+(`src/components/`) を触らずに、このファイルだけで更新できる。
+
+`profile.ts` と `index.html` には `TODO` が残っている。配信名義、プロフィール本文、
+配信先のURLはプレースホルダのままなので、**公開前に差し替えること**。
+
+### ファンアートを追加する
+
+1. 画像を `public/images/fanart/` に置く
+2. `profile.ts` の `fanArt` に1エントリ足す
+
+```ts
+{
+  src: '/images/fanart/example.jpg',
+  artist: '作者名',
+  artistUrl: 'https://example.com/artist',
+}
+```
+
+表示は正方形にトリミングされる (`object-fit: cover`) ので、元画像の縦横比は問わない。
+`artist` と `artistUrl` は型で必須にしてある。掲載は作者の許諾を得たものに限ること。
+
+### 必要な画像
+
+| パス | 用途 | 推奨 |
+|---|---|---|
+| `public/images/avatar.jpg` | ヒーローのアバター、favicon | 正方形・256px 以上 |
+| `public/images/ogp.png` | SNS シェア時のカード画像 | 1200×630 |
+
+いずれも未配置。参照は済んでいるので、置けばそのまま表示される。`public/` の中身は
+最適化されずそのまま配信されるため、アップロード前に圧縮しておくこと。
+
+## ルーティング
 
 ルートサイトとプロキシを1つの Worker にまとめている。Pages プロジェクトと Worker を
 別立てにする構成もあるが、デプロイ先が1つで済むこちらを採用した。
@@ -10,7 +60,7 @@
 | パス | 挙動 |
 |---|---|
 | `/medley-generator/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
-| それ以外 | `public/` の静的ファイルを配信 |
+| それ以外 | `dist/` (Vite のビルド成果物) を配信 |
 
 プロキシなので、ブラウザに表示されるURLは `smashcat.dev` のまま変わらない。
 リダイレクトではない点が重要で、これによって検索結果にも `smashcat.dev` として出る。
@@ -19,7 +69,7 @@
 
 GitHub Pages は `Host` ヘッダを見て配信サイトを決める。リクエストをそのまま
 転送すると `Host: smashcat.dev` が渡り、GitHub Pages はどのサイトを返すべきか
-判断できずに 404 を返す。`src/index.js` で上流のURLを組み直し、`Host` を
+判断できずに 404 を返す。`worker/index.ts` で上流のURLを組み直し、`Host` を
 落としているのはこのため。
 
 ### パス接頭辞を変えていない理由
@@ -29,11 +79,12 @@ medley-generator は `vite.config.ts` で `base: '/medley-generator/'` として
 アセットパス (`/medley-generator/assets/...`) がそのまま解決する。
 どちらか一方を変える場合は、もう一方も合わせること。
 
+このサイト自身の `base` は既定 (`/`) のまま。ルート直下で配信するため。
+
 ## デプロイ
 
 ```sh
-pnpm install
-pnpm deploy      # wrangler deploy
+pnpm deploy       # build してから wrangler deploy
 ```
 
 初回のみ、事前に以下が必要:
@@ -43,7 +94,7 @@ pnpm deploy      # wrangler deploy
 
 ## 確認しておくこと
 
-`src/index.js` の `MEDLEY_ORIGIN` は `https://naturalclar.github.io` を指している。
+`worker/index.ts` の `MEDLEY_ORIGIN` は `https://naturalclar.github.io` を指している。
 このホストは `Naturalclar/naturalclar.github.io` に残っている CNAME (`naturalclar.dev`)
 の影響でリダイレクトを返す可能性がある。`redirect: 'follow'` で追従はするが、
 実際に 200 を返すオリジンを直接指定した方が一手減る。
