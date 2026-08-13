@@ -42,6 +42,11 @@ export const avatar = '/images/avatar.jpg'
 
 export const links: Link[] = [
   { platform: 'X', handle: '@smashcat_clar', url: 'https://x.com/smashcat_clar' },
+  {
+    platform: 'Avvy',
+    handle: 'smashcat',
+    url: 'https://s.avvy.live/u/01jqvd06tqevaqdkrkwt810vjp?lang=ja',
+  },
 ]
 
 /**

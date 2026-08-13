@@ -102,10 +102,14 @@ medley-generator は `vite.config.ts` で `base: '/medley-generator/'` として
 手元から流す場合:
 
 ```sh
-pnpm deploy       # build してから wrangler deploy
+pnpm run deploy   # build してから wrangler deploy
 ```
 
 こちらは事前に `wrangler login` が必要。
+
+`run` は省略できない。`pnpm deploy` と書くと pnpm の組み込みコマンド
+(ワークスペースのパッケージを書き出すもの) が優先され、スクリプトは走らずに
+`ERR_PNPM_CANNOT_DEPLOY` で落ちる。
 
 DNS 側の準備は要らない。ドメインは Cloudflare Registrar で取得しているため
 ネームサーバとゾーンは最初から Cloudflare 側にあり、レコードと証明書は
