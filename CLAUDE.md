@@ -21,17 +21,22 @@ There is no test suite. `pnpm build` (which runs `tsc -b` across all three proje
 
 `pnpm run deploy` must keep its `run`: bare `pnpm deploy` resolves to pnpm's built-in workspace-deploy command, which shadows the script and fails with `ERR_PNPM_CANNOT_DEPLOY` since this repo is not a workspace.
 
-Anything touching `worker/index.ts` or `/medley-generator/` must be verified with `pnpm worker:dev`, not `pnpm dev` — Vite alone never runs the Worker.
+Anything touching `worker/index.ts` or a proxied prefix (`/medley-generator/`, `/avvy-deco`) must be verified with `pnpm worker:dev`, not `pnpm dev` — Vite alone never runs the Worker.
 
 ## Architecture
 
-**One Worker, two responsibilities** (`worker/index.ts`). `/medley-generator/*` is proxied to `https://naturalclar.github.io`; everything else falls through to `env.ASSETS.fetch` (the Vite build in `dist/`, bound in `wrangler.jsonc`). A single deploy target was chosen over a separate Pages project + Worker.
+**One Worker, two responsibilities** (`worker/index.ts`). A prefix listed in `PROXY_TARGETS` is proxied to an external deploy; everything else falls through to `env.ASSETS.fetch` (the Vite build in `dist/`, bound in `wrangler.jsonc`). A single deploy target was chosen over a separate Pages project + Worker.
 
-The proxy is deliberate, not a redirect — the browser URL stays `smashcat.dev` so search results attribute the tool to this domain. Two non-obvious constraints hold it together:
+| Prefix | Upstream | `normalizeTrailingSlash` | `dropLocation` |
+|---|---|---|---|
+| `/medley-generator` | GitHub Pages (`naturalclar.github.io`) | `true` | `true` |
+| `/avvy-deco` | Vercel / Next (`avvy-deco.vercel.app`) | `false` | `false` |
 
-- `Host` (and `cf-connecting-ip`/`cf-ray`) must be stripped and the upstream URL rebuilt. GitHub Pages picks the site from the `Host` header; forwarding `Host: smashcat.dev` yields a 404.
-- The upstream `Location` header is deleted from the response, otherwise the browser navigates away to the GitHub Pages URL.
-- The `/medley-generator` prefix must stay in sync with the `base` that medley-generator itself is built with. Built asset paths (`/medley-generator/assets/...`) resolve only if both sides agree. This site's own `base` stays at the default `/`.
+The proxy is deliberate, not a redirect — the browser URL stays `smashcat.dev` so search results attribute the tool to this domain. The non-obvious constraints:
+
+- `Host` (and `cf-connecting-ip`/`cf-ray`) must be stripped and the upstream URL rebuilt. Both GitHub Pages and Vercel pick the site from the `Host` header; forwarding `Host: smashcat.dev` yields a 404.
+- Each prefix must stay in sync with the path the upstream is built with — medley-generator's Vite `base`, avvy-deco's Next `basePath`. Built asset paths (`/medley-generator/assets/...`, `/avvy-deco/_next/...`) resolve only if both sides agree. This site's own `base` stays at the default `/`.
+- **The two flags are per-upstream and opposite here — don't unify them.** Vite builds resolve assets relatively, so `/prefix` has to be normalized to `/prefix/`; Next emits basePath-absolute URLs and issues its own 308 in the opposite direction, so normalizing there makes the two redirects fight. Dropping `Location` keeps the browser from following the upstream out of `smashcat.dev`, but dropping Next's own basePath 308 leaves a redirect with nowhere to go. Where `Location` is kept, an absolute upstream URL is rewritten back to this host.
 
 **Content lives in `src/data/profile.ts`.** Site copy, links, fan art entries, and tool listings are all exported from there; `src/components/` renders them and should not need editing for content changes. `index.html` duplicates the name/description in `<title>` and OG tags — keep the two in sync.
 
