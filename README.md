@@ -60,24 +60,50 @@ pnpm worker:dev   # ビルドしてから Worker 込みで起動 (プロキシ�
 | パス | 挙動 |
 |---|---|
 | `/medley-generator/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
+| `/avvy-deco*` | Vercel (`avvy-deco.vercel.app`) へプロキシ |
 | それ以外 | `dist/` (Vite のビルド成果物) を配信 |
 
 プロキシなので、ブラウザに表示されるURLは `smashcat.dev` のまま変わらない。
 リダイレクトではない点が重要で、これによって検索結果にも `smashcat.dev` として出る。
 
+### プロキシ先の追加
+
+接頭辞ごとの振る舞いは `worker/index.ts` の `PROXY_TARGETS` に持たせてある。
+上流の作法が配信元によって違うため、フラグで吸収する形にしている。
+
+| | medley-generator (GitHub Pages) | avvy-deco (Vercel / Next) |
+|---|---|---|
+| `normalizeTrailingSlash` | `true` | `false` |
+| `dropLocation` | `true` | `false` |
+
+**`normalizeTrailingSlash`** は `/prefix` を `/prefix/` に寄せる。Vite の成果物は
+アセットを相対で解決するため、末尾スラッシュが無いと一つ上の階層を見に行く。
+Next は basePath 込みの絶対URLを吐くので不要で、むしろ `/prefix/` → `/prefix` の
+308 を自分で返す。両方を有効にすると逆向きのリダイレクトがぶつかる。
+
+**`dropLocation`** は上流の `Location` を落とす。落とすのは、ブラウザが上流のURLへ
+出ていって smashcat.dev のまま見せる目的が崩れるのを防ぐため。ただし上流自身の
+正当なリダイレクト (Next の basePath 正規化など) まで消すと、行き先の無い 308 に
+なってページが出ない。残す側でも、上流オリジンを指す絶対URLはこちらのホストに
+書き換えている。
+
 ### なぜ単純な転送では動かないか
 
-GitHub Pages は `Host` ヘッダを見て配信サイトを決める。リクエストをそのまま
-転送すると `Host: smashcat.dev` が渡り、GitHub Pages はどのサイトを返すべきか
+GitHub Pages も Vercel も `Host` ヘッダを見て配信サイトを決める。リクエストを
+そのまま転送すると `Host: smashcat.dev` が渡り、上流はどのサイトを返すべきか
 判断できずに 404 を返す。`worker/index.ts` で上流のURLを組み直し、`Host` を
 落としているのはこのため。
 
 ### パス接頭辞を変えていない理由
 
-medley-generator は `vite.config.ts` で `base: '/medley-generator/'` としてビルド
-されている。プロキシ側も同じ `/medley-generator/` で受けているため、ビルド済みの
-アセットパス (`/medley-generator/assets/...`) がそのまま解決する。
-どちらか一方を変える場合は、もう一方も合わせること。
+接頭辞は、配信側がビルド時に埋め込んでいるパスと一致していなければならない。
+
+- medley-generator — `vite.config.ts` の `base: '/medley-generator/'`
+- avvy-deco — Next の `basePath: '/avvy-deco'`
+
+一致しているからこそ、ビルド済みのアセットパス (`/medley-generator/assets/...`、
+`/avvy-deco/_next/...`) がそのまま解決する。どちらか一方を変える場合は、もう一方も
+合わせること。
 
 このサイト自身の `base` は既定 (`/`) のまま。ルート直下で配信するため。
 
@@ -122,12 +148,25 @@ DNS 側の準備は要らない。ドメインは Cloudflare Registrar で取得
 
 `worker/index.ts` の `MEDLEY_ORIGIN` は `https://naturalclar.github.io` を指している。
 このホストは `Naturalclar/naturalclar.github.io` に残っている CNAME (`naturalclar.dev`)
-の影響でリダイレクトを返す可能性がある。`redirect: 'follow'` で追従はするが、
-実際に 200 を返すオリジンを直接指定した方が一手減る。
+の影響で **301 を返す**。実測値:
+
+```
+$ curl -i https://naturalclar.github.io/medley-generator/
+HTTP/2 301
+location: https://naturalclar.dev/medley-generator/
+```
+
+`redirect: 'follow'` が追従するので動作はしているが、プロキシされる全リクエストが
+1ホップ余計に踏んでいる。転送先を直接指定すればこれは消える。
+
+`AVVY_ORIGIN` は Vercel の本番エイリアスを指すこと。プレビュー用のURLはデプロイ
+ごとに変わるので使えない。
 
 ```sh
-curl -i https://naturalclar.github.io/medley-generator/ | head -20
+curl -i https://avvy-deco.vercel.app/avvy-deco | head -20
 ```
+
+200 と、`/avvy-deco/_next/` で始まるアセットURLが返れば正しい。
 
 ## 関連
 
