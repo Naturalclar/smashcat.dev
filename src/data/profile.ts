@@ -40,15 +40,8 @@ export const about: string[] = [
 /** public/images/avatar.jpg に画像を置く。正方形・256px 以上を推奨 */
 export const avatar = '/images/avatar.jpg'
 
-/**
- * TODO: 実際の配信先・SNSに差し替える。使っていない項目は削除すること。
- * プレースホルダのまま公開しないよう注意。
- */
 export const links: Link[] = [
-  { platform: 'YouTube', handle: '@handle', url: '#' },
-  { platform: 'Twitch', handle: '@handle', url: '#' },
-  { platform: 'X', handle: '@natural_clar', url: 'https://x.com/natural_clar' },
-  { platform: 'GitHub', handle: '@Naturalclar', url: 'https://github.com/Naturalclar' },
+  { platform: 'X', handle: '@smashcat_clar', url: 'https://x.com/smashcat_clar' },
 ]
 
 /**
