@@ -17,7 +17,7 @@ pnpm lint         # oxlint
 pnpm deploy       # pnpm build && wrangler deploy
 ```
 
-There is no test suite. `pnpm build` (which runs `tsc -b` across all three project references) plus `pnpm lint` is the full verification loop — that is exactly what `.github/workflows/ci.yml` runs on pull requests.
+There is no test suite. `pnpm build` (which runs `tsc -b` across all three project references) plus `pnpm lint` is the full verification loop — that is exactly what `.github/workflows/ci.yml` runs on pull requests. Pushing to `main` additionally runs that workflow's `deploy` job (`pnpm deploy`, gated on `verify` passing), so a merge ships to production.
 
 Anything touching `worker/index.ts` or `/medley-generator/` must be verified with `pnpm worker:dev`, not `pnpm dev` — Vite alone never runs the Worker.
 

@@ -83,11 +83,29 @@ medley-generator は `vite.config.ts` で `base: '/medley-generator/'` として
 
 ## デプロイ
 
+`main` に push すると、`.github/workflows/ci.yml` の `deploy` ジョブが自動で
+配信する。lint と build を通った場合だけ走る。手で流したいときは Actions から
+`workflow_dispatch` で起動できる。
+
+必要な secret は以下。リポジトリの Settings → Secrets and variables → Actions
+に登録する。
+
+| 名前 | 必須 | 内容 |
+|---|---|---|
+| `CLOUDFLARE_API_TOKEN` | 必須 | Workers の編集権限を持つ API トークン |
+| `CLOUDFLARE_ACCOUNT_ID` | 任意 | トークンが複数アカウントに紐づく場合のみ |
+
+トークンは Cloudflare ダッシュボードの「My Profile → API Tokens」から、
+"Edit Cloudflare Workers" テンプレートで作る。Custom Domain の作成には DNS の
+編集権限も要るため、新しいホスト名を足すときに権限不足で落ちたらそこを疑う。
+
+手元から流す場合:
+
 ```sh
 pnpm deploy       # build してから wrangler deploy
 ```
 
-初回のみ、事前に `wrangler login` が必要。
+こちらは事前に `wrangler login` が必要。
 
 DNS 側の準備は要らない。ドメインは Cloudflare Registrar で取得しているため
 ネームサーバとゾーンは最初から Cloudflare 側にあり、レコードと証明書は
