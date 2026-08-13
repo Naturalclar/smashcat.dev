@@ -6,19 +6,12 @@ import { Tools } from './components/Tools.tsx'
 
 export function App() {
   return (
-    <>
-      <div className="wrap">
-        <Hero />
-        <About />
-        <Links />
-        <FanArtGallery />
-        <Tools />
-      </div>
-      <footer>
-        <div className="wrap">
-          <a href="https://naturalclar.dev/">naturalclar.dev</a>
-        </div>
-      </footer>
-    </>
+    <div className="wrap">
+      <Hero />
+      <About />
+      <Links />
+      <FanArtGallery />
+      <Tools />
+    </div>
   )
 }
