@@ -14,10 +14,12 @@ pnpm dev          # Vite dev server only — Worker routing/proxy does NOT apply
 pnpm worker:dev   # pnpm build && wrangler dev — the only way to exercise the proxy
 pnpm build        # tsc -b && vite build → dist/
 pnpm lint         # oxlint
-pnpm deploy       # pnpm build && wrangler deploy
+pnpm run deploy   # pnpm build && wrangler deploy — `run` is required, see below
 ```
 
-There is no test suite. `pnpm build` (which runs `tsc -b` across all three project references) plus `pnpm lint` is the full verification loop — that is exactly what `.github/workflows/ci.yml` runs on pull requests. Pushing to `main` additionally runs that workflow's `deploy` job (`pnpm deploy`, gated on `verify` passing), so a merge ships to production.
+There is no test suite. `pnpm build` (which runs `tsc -b` across all three project references) plus `pnpm lint` is the full verification loop — that is exactly what `.github/workflows/ci.yml` runs on pull requests. Pushing to `main` additionally runs that workflow's `deploy` job (gated on `verify` passing), so a merge ships to production.
+
+`pnpm run deploy` must keep its `run`: bare `pnpm deploy` resolves to pnpm's built-in workspace-deploy command, which shadows the script and fails with `ERR_PNPM_CANNOT_DEPLOY` since this repo is not a workspace.
 
 Anything touching `worker/index.ts` or `/medley-generator/` must be verified with `pnpm worker:dev`, not `pnpm dev` — Vite alone never runs the Worker.
 
