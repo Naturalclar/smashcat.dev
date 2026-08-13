@@ -4,11 +4,17 @@ on:
   push:
     branches: [main]
   pull_request:
+  # デプロイだけを手で流したいときのため。
+  workflow_dispatch:
 
 # 同じブランチで新しい push があったら、走っている古い run は止める。
+# ただし main は止めない。デプロイ中の run を切ると、途中で終わる。
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
 
 jobs:
   verify:
@@ -31,3 +37,29 @@ jobs:
 
       # tsc -b が3つの tsconfig をすべて通るため、型チェックはこれで足りる。
       - run: pnpm build
+
+  deploy:
+    # lint と build を通ったものだけを配信する。
+    needs: verify
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # pnpm deploy は build してから wrangler deploy を走らせる。verify で
+      # 一度ビルドしているが、成果物を job 間で受け渡すより作り直す方が短い。
+      - run: pnpm deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # 複数アカウントに紐づくトークンの場合に必要。未設定なら空文字列に
+          # なり、wrangler は指定なしとして扱う。
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
