@@ -87,10 +87,14 @@ medley-generator は `vite.config.ts` で `base: '/medley-generator/'` として
 pnpm deploy       # build してから wrangler deploy
 ```
 
-初回のみ、事前に以下が必要:
+初回のみ、事前に `wrangler login` が必要。
 
-1. `smashcat.dev` のネームサーバを Cloudflare に向け、ゾーンを有効化する
-2. `wrangler login`
+DNS 側の準備は要らない。ドメインは Cloudflare Registrar で取得しているため
+ネームサーバとゾーンは最初から Cloudflare 側にあり、レコードと証明書は
+`wrangler.jsonc` の Custom Domain 設定によって deploy 時に自動で作られる。
+
+ゾーンと Worker のデプロイ先が同じアカウントである必要はある。`wrangler login`
+で複数アカウントに紐づいている場合はここを取り違えないこと。
 
 ## 確認しておくこと
 
