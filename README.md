@@ -67,6 +67,9 @@ pnpm run ogp                            # → public/images/ogp.png
 枠に対して `cover` で入るため、中央から外れた位置に主題があると切れる。
 置かずに実行すると、右側がプレースホルダのまま出力される。レイアウトの確認用。
 
+**現在の `ogp/art.png` は仮のグラデーション画像。** 実際の一枚絵に差し替えて
+`pnpm run ogp` を流し直すこと。
+
 文言は `src/data/profile.ts` の `name` と `tagline` から読む。テンプレート
 (`ogp/template.html`) 側に名義を書かないこと。プロフィールを変えたら
 `pnpm run ogp` を流し直して、生成された `public/images/ogp.png` をコミットする。
