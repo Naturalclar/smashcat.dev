@@ -26,22 +26,23 @@ export type Tool = {
   href: string
 }
 
-/** TODO: 配信名義に差し替える */
-export const name = 'smashcat'
+export const name = 'Smashcat/すまきゃ'
 
-/** TODO: 一言紹介に差し替える */
-export const tagline = '配信で音楽をやっています。'
+export const tagline = 'Avvy で配信しています。弾き語り中心。'
 
-/** TODO: プロフィール本文に差し替える。段落ごとに配列の要素にする */
-export const about: string[] = [
-  'プロフィール本文をここに書きます。どんな配信をしているか、いつやっているか、何を演奏するかなど。',
-]
+/**
+ * プロフィール本文。段落ごとに配列の要素にする。
+ *
+ * 空にしておくと About のセクションごと出ない。本文が用意できるまでは
+ * プレースホルダを出すより何も出さない方がよいので空のままにしてある。
+ */
+export const about: string[] = []
 
 /** public/images/avatar.jpg に画像を置く。正方形・256px 以上を推奨 */
 export const avatar = '/images/avatar.jpg'
 
 export const links: Link[] = [
-  { platform: 'X', handle: '@smashcat_clar', url: 'https://x.com/smashcat_clar' },
+  { platform: 'X', handle: '@Smashcat_Clar', url: 'https://x.com/Smashcat_Clar' },
   {
     platform: 'Avvy',
     handle: 'smashcat',
