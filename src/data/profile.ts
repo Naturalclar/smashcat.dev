@@ -67,7 +67,7 @@ export const tools: Tool[] = [
     href: '/medley-generator/',
   },
   {
-    name: 'Avvy デコ',
+    name: 'Avvy Deco',
     description: 'Avvy で撮った写真に素材を重ねて、タイムライン用に書き出せるツール。',
     // medley と違い末尾スラッシュを付けない。上流の Next が `/avvy-deco/` を
     // `/avvy-deco` へ 308 で正規化するので、付けると一手余計に挟まる。
