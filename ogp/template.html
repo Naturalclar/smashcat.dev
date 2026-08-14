@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>OGP</title>
+    <style>
+      /* src/index.css のライトテーマと同じ値。サイト側を変えたらここも合わせる。 */
+      :root {
+        --bg: #fbf7f4;
+        --surface: #ffffff;
+        --fg: #1f1a17;
+        --muted: #6d635c;
+        --border: #e8ded6;
+        --accent: #d2542f;
+        --accent-soft: #fceee8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      /*
+       * OGP の推奨サイズ。スクリーンショット側の viewport と一致させること。
+       * ズレると余白が入るか見切れる。
+       */
+      body {
+        width: 1200px;
+        height: 630px;
+        margin: 0;
+        display: flex;
+        align-items: stretch;
+        background: var(--bg);
+        color: var(--fg);
+        font-family:
+          'Hiragino Sans', 'Noto Sans JP', 'IPAGothic', system-ui, sans-serif;
+      }
+
+      /* ---------- 左: テキスト ---------- */
+
+      .text {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 72px 56px 72px 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 24px;
+      }
+
+      .name {
+        margin: 0;
+        font-size: 56px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        /* 名義が長いときに右の絵へ食い込ませない。単語の途中では折らない。 */
+        overflow-wrap: break-word;
+      }
+
+      .tagline {
+        margin: 0;
+        font-size: 27px;
+        line-height: 1.55;
+        color: var(--muted);
+      }
+
+      .domain {
+        margin: 8px 0 0;
+        font-size: 26px;
+        font-weight: 600;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+      }
+
+      /* ---------- 右: 一枚絵 ---------- */
+
+      .art {
+        flex: 0 0 440px;
+        margin: 48px 48px 48px 0;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background-color: var(--accent-soft);
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        overflow: hidden;
+      }
+
+      /* 画像が未配置のときだけ出る枠。generate.mjs が出し分ける。 */
+      .art--empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-style: dashed;
+        border-width: 2px;
+        color: var(--muted);
+        font-size: 22px;
+        text-align: center;
+        padding: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="text">
+      <h1 class="name" id="name"></h1>
+      <p class="tagline" id="tagline"></p>
+      <p class="domain">smashcat.dev</p>
+    </div>
+
+    <div class="art art--empty" id="art">
+      一枚絵が未配置<br />ogp/art.png を置いて再実行
+    </div>
+  </body>
+</html>
