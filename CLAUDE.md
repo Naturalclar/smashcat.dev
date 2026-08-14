@@ -14,6 +14,7 @@ pnpm dev          # Vite dev server only — Worker routing/proxy does NOT apply
 pnpm worker:dev   # pnpm build && wrangler dev — the only way to exercise the proxy
 pnpm build        # tsc -b && vite build → dist/
 pnpm lint         # oxlint
+pnpm run ogp      # ogp/template.html を Playwright で撮る → public/images/ogp.png
 pnpm run deploy   # pnpm build && wrangler deploy — `run` is required, see below
 ```
 
@@ -49,4 +50,5 @@ The proxy is deliberate, not a redirect — the browser URL stays `smashcat.dev`
 - Code comments, JSDoc, and user-facing copy are written in Japanese.
 - TypeScript is split into three project references — `tsconfig.app.json` (`src`, DOM libs), `tsconfig.worker.json` (`worker`, `@cloudflare/workers-types`, no DOM), `tsconfig.node.json` (`vite.config.ts`). Worker code has no DOM types available.
 - `public/` assets ship unoptimized; compress images before adding them. `public/images/avatar.jpg` (square, ≥256px) and `public/images/ogp.png` (1200×630) are referenced but not yet committed.
+- `public/images/ogp.png` is generated, not hand-made — `pnpm run ogp` screenshots `ogp/template.html` at 1200×630 and writes it. The template pulls `name`/`tagline` out of `profile.ts` by regex rather than duplicating them, so it fails loudly if those `export const` lines change shape. The illustration comes from `ogp/art.png` (untracked until supplied); without it the right panel renders a placeholder. Rendering depends on the host's fonts, so re-check the output visually when regenerating on a different machine.
 - Fan art requires `artist` and `artistUrl` by type — entries are only added with the artist's permission.

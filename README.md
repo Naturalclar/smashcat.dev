@@ -47,10 +47,39 @@ pnpm worker:dev   # ビルドしてから Worker 込みで起動 (プロキシ�
 | パス | 用途 | 推奨 |
 |---|---|---|
 | `public/images/avatar.jpg` | ヒーローのアバター、favicon | 正方形・256px 以上 |
-| `public/images/ogp.png` | SNS シェア時のカード画像 | 1200×630 |
+| `public/images/ogp.png` | SNS シェア時のカード画像 | 1200×630 (生成する) |
 
 いずれも未配置。参照は済んでいるので、置けばそのまま表示される。`public/` の中身は
 最適化されずそのまま配信されるため、アップロード前に圧縮しておくこと。
+
+`ogp.png` は手で作らず、下の手順で生成する。
+
+### OGP 画像を作る
+
+左に名義と紹介文、右に一枚絵を並べたカードを Playwright で撮る。
+
+```sh
+pnpm exec playwright install chromium   # 初回のみ
+pnpm run ogp                            # → public/images/ogp.png
+```
+
+一枚絵は `ogp/art.png` に置く (`.jpg` / `.jpeg` / `.webp` も可)。縦横比は問わない。
+枠に対して `cover` で入るため、中央から外れた位置に主題があると切れる。
+置かずに実行すると、右側がプレースホルダのまま出力される。レイアウトの確認用。
+
+文言は `src/data/profile.ts` の `name` と `tagline` から読む。テンプレート
+(`ogp/template.html`) 側に名義を書かないこと。プロフィールを変えたら
+`pnpm run ogp` を流し直して、生成された `public/images/ogp.png` をコミットする。
+
+配色は `src/index.css` のライトテーマと同じ値をテンプレートに直書きしてある。
+サイト側の色を変えたときは合わせること。
+
+使うフォントは実行するマシンに入っているものに依存する (macOS なら Hiragino Sans、
+Linux なら Noto Sans JP や IPAGothic)。**環境が違うと字形と行の折れ方が変わる**ので、
+差し替えるときは生成結果を目で確認する。
+
+すでにどこかにある Chromium を使わせたい場合は `OGP_CHROMIUM_PATH` にその実行
+ファイルを指定する。`playwright install` を省ける。
 
 ## ルーティング
 

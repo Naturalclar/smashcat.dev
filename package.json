@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "ogp": "node ogp/generate.mjs",
     "preview": "vite preview",
     "deploy": "pnpm build && wrangler deploy",
     "worker:dev": "pnpm build && wrangler dev"
@@ -23,6 +24,7 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
     "oxlint": "^1.78.0",
+    "playwright": "^1.62.1",
     "typescript": "~7.0.2",
     "vite": "^8.2.1",
     "wrangler": "^4.122.0"
