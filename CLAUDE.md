@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-smashcat.dev — a streaming-activity landing page (profile, links to stream platforms, fan art). Vite + React 19 + TypeScript, served from a single Cloudflare Worker that also reverse-proxies `/medley-generator/` to GitHub Pages.
+smashcat.dev — a streaming-activity landing page (profile, links to stream platforms, fan art). Vite + React 19 + TypeScript, served from a single Cloudflare Worker that also reverse-proxies a few prefixes to where those tools are actually deployed.
 
 ## Commands
 
@@ -22,7 +22,7 @@ There is no test suite. `pnpm build` (which runs `tsc -b` across all three proje
 
 `pnpm run deploy` must keep its `run`: bare `pnpm deploy` resolves to pnpm's built-in workspace-deploy command, which shadows the script and fails with `ERR_PNPM_CANNOT_DEPLOY` since this repo is not a workspace.
 
-Anything touching `worker/index.ts` or a proxied prefix (`/medley-generator/`, `/avvy-deco`) must be verified with `pnpm worker:dev`, not `pnpm dev` — Vite alone never runs the Worker.
+Anything touching `worker/index.ts` or a proxied prefix (`/medley-generator/`, `/prism-river/`, `/bass-tabs/`, `/avvy-deco`) must be verified with `pnpm worker:dev`, not `pnpm dev` — Vite alone never runs the Worker.
 
 ## Architecture
 
@@ -31,6 +31,8 @@ Anything touching `worker/index.ts` or a proxied prefix (`/medley-generator/`, `
 | Prefix | Upstream | `normalizeTrailingSlash` | `dropLocation` |
 |---|---|---|---|
 | `/medley-generator` | GitHub Pages (`naturalclar.github.io`) | `true` | `true` |
+| `/prism-river` | GitHub Pages (`naturalclar.github.io`) | `true` | `true` |
+| `/bass-tabs` | GitHub Pages (`naturalclar.github.io`) | `true` | `true` |
 | `/avvy-deco` | Vercel / Next (`avvy-deco.vercel.app`) | `false` | `false` |
 
 The proxy is deliberate, not a redirect — the browser URL stays `smashcat.dev` so search results attribute the tool to this domain. The non-obvious constraints:

@@ -42,7 +42,7 @@ type ProxyTarget = {
 }
 
 /**
- * medley-generator と prism-river は GitHub Pages。どちらもリポジトリ名が
+ * medley-generator、prism-river、bass-tabs は GitHub Pages。いずれもリポジトリ名が
  * そのままパスになるので、同じオリジンを共有する。
  *
  * naturalclar.github.io は Naturalclar/naturalclar.github.io に残っている CNAME
@@ -52,6 +52,7 @@ type ProxyTarget = {
  *
  *   curl -i https://naturalclar.github.io/medley-generator/ | head -20
  *   curl -i https://naturalclar.github.io/prism-river/ | head -20
+ *   curl -i https://naturalclar.github.io/bass-tabs/ | head -20
  */
 const PAGES_ORIGIN = 'https://naturalclar.github.io'
 
@@ -79,6 +80,21 @@ const PROXY_TARGETS: ProxyTarget[] = [
      寄せないとアセットが一つ上の階層に解決されて 404 になる。 */
   {
     prefix: '/prism-river',
+    origin: PAGES_ORIGIN,
+    normalizeTrailingSlash: true,
+    dropLocation: true,
+  },
+  /* bass-tabs も Vite + GitHub Pages。base が '/bass-tabs/' と接頭辞に
+     一致しているので、アセットは medley-generator と同じく絶対で解決する
+     (prism-river のような相対ビルドではない)。
+
+     それでも normalizeTrailingSlash を立てるのは、アセットのためではなく
+     上流のリダイレクトを避けるため。GitHub Pages はディレクトリを指す
+     `/bass-tabs` に対して自分で `/bass-tabs/` への 301 を返すので、
+     dropLocation がその Location を消してしまうと行き先の無い 301 になる。
+     こちらで先に寄せておけば、上流にその判断をさせずに済む。 */
+  {
+    prefix: '/bass-tabs',
     origin: PAGES_ORIGIN,
     normalizeTrailingSlash: true,
     dropLocation: true,

@@ -93,6 +93,7 @@ Linux なら Noto Sans JP や IPAGothic)。**環境が違うと字形と行の�
 |---|---|
 | `/medley-generator/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
 | `/prism-river/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
+| `/bass-tabs/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
 | `/avvy-deco*` | Vercel (`avvy-deco.vercel.app`) へプロキシ |
 | それ以外 | `dist/` (Vite のビルド成果物) を配信 |
 
@@ -104,7 +105,7 @@ Linux なら Noto Sans JP や IPAGothic)。**環境が違うと字形と行の�
 接頭辞ごとの振る舞いは `worker/index.ts` の `PROXY_TARGETS` に持たせてある。
 上流の作法が配信元によって違うため、フラグで吸収する形にしている。
 
-| | medley-generator / prism-river (GitHub Pages) | avvy-deco (Vercel / Next) |
+| | medley-generator / prism-river / bass-tabs (GitHub Pages) | avvy-deco (Vercel / Next) |
 |---|---|---|
 | `normalizeTrailingSlash` | `true` | `false` |
 | `dropLocation` | `true` | `false` |
@@ -132,11 +133,17 @@ GitHub Pages も Vercel も `Host` ヘッダを見て配信サイトを決める
 接頭辞は、配信側がビルド時に埋め込んでいるパスと一致していなければならない。
 
 - medley-generator — `vite.config.ts` の `base: '/medley-generator/'`
+- bass-tabs — `base-path.ts` の `BASE_PATH = '/bass-tabs/'` (Vite の `base` がこれを読む)
 - avvy-deco — Next の `basePath: '/avvy-deco'`
 
 一致しているからこそ、ビルド済みのアセットパス (`/medley-generator/assets/...`、
-`/avvy-deco/_next/...`) がそのまま解決する。どちらか一方を変える場合は、もう一方も
-合わせること。
+`/bass-tabs/assets/...`、`/avvy-deco/_next/...`) がそのまま解決する。どちらか一方を
+変える場合は、もう一方も合わせること。
+
+bass-tabs はアセットが絶対で解決するため、末尾スラッシュはアセットの解決には効かない。
+それでも `normalizeTrailingSlash` を立てているのは、GitHub Pages がディレクトリを指す
+`/bass-tabs` に自分で 301 を返し、その Location を `dropLocation` が消してしまうため。
+上流にリダイレクトさせないのが目的で、prism-river とは理由が違う。
 
 prism-river だけは事情が違い、`base: './'` (相対) のままビルドしている。埋め込まれた
 パスに接頭辞が入らないので、**どの接頭辞の下に置いても動く代わりに、末尾スラッシュが
@@ -212,8 +219,12 @@ curl -i https://avvy-deco.vercel.app/avvy-deco | head -20
 
 - 配信元: [Naturalclar/medley-generator](https://github.com/Naturalclar/medley-generator)、
   [Naturalclar/prism-river](https://github.com/Naturalclar/prism-river)、
+  [Naturalclar/bass-tabs](https://github.com/Naturalclar/bass-tabs)、
   [Naturalclar/avvy-deco](https://github.com/Naturalclar/avvy-deco)
 - medley-generator 側の `index.html` には `smashcat.dev` を指す canonical が入っている。
   同じ内容が GitHub Pages 側のURLからも見えるため、正規URLを明示する必要がある。
 - OAuth の「承認済みの JavaScript 生成元」は `https://smashcat.dev`。ブラウザが認証を
   行うのはプロキシ先ではなくこちら側。
+- bass-tabs は譜面を `localStorage` にしか持たない。`localStorage` はオリジン単位なので、
+  **`naturalclar.github.io` 側で保存した譜面は `smashcat.dev` からは見えない**
+  (消えてはおらず、別のオリジンにある)。bass-tabs 側の一覧の書き出し / 取り込みで移せる。
