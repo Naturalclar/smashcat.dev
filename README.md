@@ -92,6 +92,7 @@ Linux なら Noto Sans JP や IPAGothic)。**環境が違うと字形と行の�
 | パス | 挙動 |
 |---|---|
 | `/medley-generator/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
+| `/prism-river/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
 | `/avvy-deco*` | Vercel (`avvy-deco.vercel.app`) へプロキシ |
 | それ以外 | `dist/` (Vite のビルド成果物) を配信 |
 
@@ -103,7 +104,7 @@ Linux なら Noto Sans JP や IPAGothic)。**環境が違うと字形と行の�
 接頭辞ごとの振る舞いは `worker/index.ts` の `PROXY_TARGETS` に持たせてある。
 上流の作法が配信元によって違うため、フラグで吸収する形にしている。
 
-| | medley-generator (GitHub Pages) | avvy-deco (Vercel / Next) |
+| | medley-generator / prism-river (GitHub Pages) | avvy-deco (Vercel / Next) |
 |---|---|---|
 | `normalizeTrailingSlash` | `true` | `false` |
 | `dropLocation` | `true` | `false` |
@@ -136,6 +137,12 @@ GitHub Pages も Vercel も `Host` ヘッダを見て配信サイトを決める
 一致しているからこそ、ビルド済みのアセットパス (`/medley-generator/assets/...`、
 `/avvy-deco/_next/...`) がそのまま解決する。どちらか一方を変える場合は、もう一方も
 合わせること。
+
+prism-river だけは事情が違い、`base: './'` (相対) のままビルドしている。埋め込まれた
+パスに接頭辞が入らないので、**どの接頭辞の下に置いても動く代わりに、末尾スラッシュが
+必須**になる。`/prism-river` のままだと `./assets/...` が `/assets/...` に解決されて
+アセットだけ 404 になるため、`normalizeTrailingSlash` が効いていることが前提。
+接頭辞を変えるときも配信側の変更は要らない。
 
 このサイト自身の `base` は既定 (`/`) のまま。ルート直下で配信するため。
 
@@ -178,7 +185,8 @@ DNS 側の準備は要らない。ドメインは Cloudflare Registrar で取得
 
 ## 確認しておくこと
 
-`worker/index.ts` の `MEDLEY_ORIGIN` は `https://naturalclar.github.io` を指している。
+`worker/index.ts` の `PAGES_ORIGIN` (medley-generator と prism-river が共有) は
+`https://naturalclar.github.io` を指している。
 このホストは `Naturalclar/naturalclar.github.io` に残っている CNAME (`naturalclar.dev`)
 の影響で **301 を返す**。実測値:
 
@@ -202,7 +210,9 @@ curl -i https://avvy-deco.vercel.app/avvy-deco | head -20
 
 ## 関連
 
-- 配信元: [Naturalclar/medley-generator](https://github.com/Naturalclar/medley-generator)
+- 配信元: [Naturalclar/medley-generator](https://github.com/Naturalclar/medley-generator)、
+  [Naturalclar/prism-river](https://github.com/Naturalclar/prism-river)、
+  [Naturalclar/avvy-deco](https://github.com/Naturalclar/avvy-deco)
 - medley-generator 側の `index.html` には `smashcat.dev` を指す canonical が入っている。
   同じ内容が GitHub Pages 側のURLからも見えるため、正規URLを明示する必要がある。
 - OAuth の「承認済みの JavaScript 生成元」は `https://smashcat.dev`。ブラウザが認証を

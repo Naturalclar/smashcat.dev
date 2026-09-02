@@ -42,7 +42,8 @@ type ProxyTarget = {
 }
 
 /**
- * medley-generator は GitHub Pages。
+ * medley-generator と prism-river は GitHub Pages。どちらもリポジトリ名が
+ * そのままパスになるので、同じオリジンを共有する。
  *
  * naturalclar.github.io は Naturalclar/naturalclar.github.io に残っている CNAME
  * (naturalclar.dev) の影響でリダイレクトを返す可能性がある。下の fetch は
@@ -50,8 +51,9 @@ type ProxyTarget = {
  * 指定した方が一手減る。
  *
  *   curl -i https://naturalclar.github.io/medley-generator/ | head -20
+ *   curl -i https://naturalclar.github.io/prism-river/ | head -20
  */
-const MEDLEY_ORIGIN = 'https://naturalclar.github.io'
+const PAGES_ORIGIN = 'https://naturalclar.github.io'
 
 /**
  * avvy-deco は Vercel。
@@ -68,7 +70,16 @@ const AVVY_ORIGIN = 'https://avvy-deco.vercel.app'
 const PROXY_TARGETS: ProxyTarget[] = [
   {
     prefix: '/medley-generator',
-    origin: MEDLEY_ORIGIN,
+    origin: PAGES_ORIGIN,
+    normalizeTrailingSlash: true,
+    dropLocation: true,
+  },
+  /* prism-river も Vite + GitHub Pages なので medley-generator と同じ設定。
+     vite.config.ts の base は './' （相対）のままなので、末尾スラッシュを
+     寄せないとアセットが一つ上の階層に解決されて 404 になる。 */
+  {
+    prefix: '/prism-river',
+    origin: PAGES_ORIGIN,
     normalizeTrailingSlash: true,
     dropLocation: true,
   },
