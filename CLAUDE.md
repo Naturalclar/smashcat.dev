@@ -41,6 +41,18 @@ The proxy is deliberate, not a redirect — the browser URL stays `smashcat.dev`
 - Each prefix must stay in sync with the path the upstream is built with — medley-generator's Vite `base`, avvy-deco's Next `basePath`. Built asset paths (`/medley-generator/assets/...`, `/avvy-deco/_next/...`) resolve only if both sides agree. This site's own `base` stays at the default `/`.
 - **The two flags are per-upstream and opposite here — don't unify them.** Vite builds resolve assets relatively, so `/prefix` has to be normalized to `/prefix/`; Next emits basePath-absolute URLs and issues its own 308 in the opposite direction, so normalizing there makes the two redirects fight. Dropping `Location` keeps the browser from following the upstream out of `smashcat.dev`, but dropping Next's own basePath 308 leaves a redirect with nowhere to go. Where `Location` is kept, an absolute upstream URL is rewritten back to this host.
 
+**`SHARE_REDIRECTS` runs before the proxy, and has to.** A short share path is
+matched exactly and answered with a 302 to the same path carrying UTM
+parameters — `/avvy-deco/s` → `/avvy-deco?utm_source=share&…`
+([avvy-deco#327](https://github.com/Naturalclar/avvy-deco/issues/327)), so the
+share sheet posts a short URL instead of a long tagged one. Three details are
+each silent if dropped: it is matched **exactly** (a prefix match would swallow
+a future real path like `/avvy-deco/settings`), it is a **302** (the UTM values
+may change, and a 308 would sit in browser caches out of reach), and the
+original query is **not** carried over (the destination has its own). It cannot
+live in `PROXY_TARGETS`: `/avvy-deco/s` matches the `/avvy-deco` prefix first
+and would reach the upstream Next app as a 404.
+
 **Content lives in `src/data/profile.ts`.** Site copy, links, fan art entries, and tool listings are all exported from there; `src/components/` renders them and should not need editing for content changes. `index.html` duplicates the name/description in `<title>` and OG tags — keep the two in sync.
 
 `profile.ts` and `index.html` still carry `TODO` placeholders (stream name, bio, platform URLs). They must be replaced before the site goes public.
