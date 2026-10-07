@@ -107,6 +107,29 @@ const PROXY_TARGETS: ProxyTarget[] = [
   },
 ]
 
+/**
+ * 共有リンク用の短いパスと、その行き先。**プロキシより先に**引く。
+ *
+ * `/avvy-deco/s` は `/avvy-deco` の接頭辞に先にマッチするので、PROXY_TARGETS に
+ * 並べても届かない。上流の Next にそのまま渡って 404 になるだけ。
+ *
+ * 引き方は完全一致。前方一致にすると、将来 `/avvy-deco/settings` のような
+ * 実在するパスまでこのリダイレクトに吸われる。
+ *
+ * 302 (恒久ではない) なのは UTM の中身が変わりうるため。308 だとブラウザが古い
+ * 行き先をキャッシュし、こちらから直す手段がなくなる。
+ *
+ * 元のクエリは引き継がない。行き先が自分のクエリを持っているので、混ぜると
+ * どちらが勝つかがURL次第になる。共有シートが投稿するのは素のURLなので、
+ * 実際にクエリが付いて来ることもない。
+ *
+ * 短いパスにしているのは、共有本文に UTM 付きの長いURLがそのまま出るのを
+ * 避けるため (avvy-deco#327)。流入を数える側の都合をユーザーに見せない。
+ */
+const SHARE_REDIRECTS = new Map<string, string>([
+  ['/avvy-deco/s', '/avvy-deco?utm_source=share&utm_medium=social&utm_campaign=share_sheet'],
+])
+
 /** 上流に引き継ぐと壊れる、あるいは引き継ぐ意味がないヘッダ。 */
 const STRIPPED_REQUEST_HEADERS = ['host', 'cf-connecting-ip', 'cf-ray']
 
@@ -156,6 +179,15 @@ async function proxy(request: Request, url: URL, target: ProxyTarget): Promise<R
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
+
+    // プロキシの振り分けより先。接頭辞に食われるので、後ろには置けない。
+    const share = SHARE_REDIRECTS.get(url.pathname)
+    if (share) {
+      // url.origin から組むので、wrangler dev (localhost) でも自分のホストに
+      // 戻る。ホスト名を直書きすると、ローカルで踏んだ瞬間に本番へ飛ぶ。
+      return Response.redirect(new URL(share, url.origin).toString(), 302)
+    }
+
     const target = matchTarget(url.pathname)
 
     if (!target) {

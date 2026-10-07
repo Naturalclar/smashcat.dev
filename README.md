@@ -91,6 +91,7 @@ Linux なら Noto Sans JP や IPAGothic)。**環境が違うと字形と行の�
 
 | パス | 挙動 |
 |---|---|
+| `/avvy-deco/s` | `/avvy-deco?utm_source=share&…` へ 302 (完全一致、プロキシより先) |
 | `/medley-generator/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
 | `/prism-river/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
 | `/bass-tabs/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
@@ -99,6 +100,21 @@ Linux なら Noto Sans JP や IPAGothic)。**環境が違うと字形と行の�
 
 プロキシなので、ブラウザに表示されるURLは `smashcat.dev` のまま変わらない。
 リダイレクトではない点が重要で、これによって検索結果にも `smashcat.dev` として出る。
+
+### 共有リンクの短いパス
+
+`SHARE_REDIRECTS` は、共有本文に入る短いURLを UTM 付きの本体へ 302 で送る表。
+プロキシの振り分けより **先** に引く。`/avvy-deco/s` は `/avvy-deco` の接頭辞に
+先にマッチするので、`PROXY_TARGETS` に並べても届かず、上流の Next に渡って
+404 になるだけ。
+
+完全一致で引く (前方一致にすると将来の `/avvy-deco/settings` のような実在する
+パスまで吸われる)、302 であって 308 ではない (UTM の中身は変わりうる。308 は
+ブラウザのキャッシュに残り、こちらから直せない)、元のクエリは引き継がない
+(行き先が自分のクエリを持っているため) の3点は、どれも落とすと静かに壊れる。
+
+短いパスにしている理由は共有本文の見た目で、UTM 付きの長いURLがそのまま
+投稿に出るのを避けるため — [avvy-deco#327](https://github.com/Naturalclar/avvy-deco/issues/327)。
 
 ### プロキシ先の追加
 
