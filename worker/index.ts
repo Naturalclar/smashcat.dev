@@ -70,6 +70,12 @@ const AVVY_ORIGIN = 'https://avvy-deco.vercel.app'
 
 const PROXY_TARGETS: ProxyTarget[] = [
   {
+    prefix: '/moji-atelier',
+    origin: 'https://naturalclar.dev',
+    normalizeTrailingSlash: true,
+    dropLocation: true,
+  },
+  {
     prefix: '/medley-generator',
     origin: PAGES_ORIGIN,
     normalizeTrailingSlash: true,

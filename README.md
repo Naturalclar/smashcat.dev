@@ -92,6 +92,7 @@ Linux なら Noto Sans JP や IPAGothic)。**環境が違うと字形と行の�
 | パス | 挙動 |
 |---|---|
 | `/avvy-deco/s` | `/avvy-deco?utm_source=share&…` へ 302 (完全一致、プロキシより先) |
+| `/moji-atelier/*` | GitHub Pages (`naturalclar.dev`) へプロキシ。末尾スラッシュを正規化 |
 | `/medley-generator/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
 | `/prism-river/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
 | `/bass-tabs/*` | GitHub Pages (`naturalclar.github.io`) へプロキシ |
