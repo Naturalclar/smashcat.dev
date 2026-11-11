@@ -18,6 +18,9 @@ type ProxyTarget = {
   /** 配信側の vite base / basePath と一致させること。ズレると 404 になる。 */
   prefix: string
 
+  /** 公開側と配信元でパス接頭辞が異なる場合の変換先。 */
+  upstreamPrefix?: string
+
   origin: string
 
   /**
@@ -69,6 +72,13 @@ const PAGES_ORIGIN = 'https://naturalclar.github.io'
 const AVVY_ORIGIN = 'https://avvy-deco.vercel.app'
 
 const PROXY_TARGETS: ProxyTarget[] = [
+  {
+    prefix: '/collage',
+    upstreamPrefix: '/setli-collage',
+    origin: PAGES_ORIGIN,
+    normalizeTrailingSlash: true,
+    dropLocation: true,
+  },
   {
     prefix: '/moji-atelier',
     origin: 'https://naturalclar.dev',
@@ -146,7 +156,10 @@ function matchTarget(pathname: string): ProxyTarget | undefined {
 }
 
 async function proxy(request: Request, url: URL, target: ProxyTarget): Promise<Response> {
-  const upstream = new URL(url.pathname + url.search, target.origin)
+  const pathname = target.upstreamPrefix
+    ? target.upstreamPrefix + url.pathname.slice(target.prefix.length)
+    : url.pathname
+  const upstream = new URL(pathname + url.search, target.origin)
 
   // 元のリクエストヘッダをそのまま渡すと Host が smashcat.dev のままになり、
   // 上流が配信サイトを特定できずに 404 を返す。
@@ -185,18 +198,6 @@ async function proxy(request: Request, url: URL, target: ProxyTarget): Promise<R
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
-
-    // コラージュ専用ホストは、新リポジトリの Pages を配信元にする。
-    // アセットは相対 URL なので、公開側ではパス接頭辞を付けない。
-    if (url.hostname === 'collage.smashcat.dev') {
-      url.pathname = `/setli-collage${url.pathname}`
-      return proxy(request, url, {
-        prefix: '/setli-collage',
-        origin: PAGES_ORIGIN,
-        normalizeTrailingSlash: false,
-        dropLocation: true,
-      })
-    }
 
     // プロキシの振り分けより先。接頭辞に食われるので、後ろには置けない。
     const share = SHARE_REDIRECTS.get(url.pathname)

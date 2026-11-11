@@ -246,12 +246,13 @@ curl -i https://avvy-deco.vercel.app/avvy-deco | head -20
   **`naturalclar.github.io` 側で保存した譜面は `smashcat.dev` からは見えない**
   (消えてはおらず、別のオリジンにある)。bass-tabs 側の一覧の書き出し / 取り込みで移せる。
 
-## コラージュの専用ホスト
+## コラージュの配信パス
 
-`collage.smashcat.dev` は `Naturalclar/setli-collage` の GitHub Pages にプロキシする。
-公開側の `/app.js` などを、配信元の `/setli-collage/app.js` に対応させる。
+`https://smashcat.dev/collage/` は `Naturalclar/setli-collage` の GitHub Pages にプロキシする。
+公開側の `/collage/app.js` などを、配信元の `/setli-collage/app.js` に対応させる。
+`/collage` は `/collage/` にリダイレクトして相対アセットの解決先を揃える。
 アプリの更新は新リポジトリの `main` への push だけで配信される。
-Cloudflare の Custom Domain と証明書はこのリポジトリの `wrangler.jsonc` で管理する。
+既存の Cloudflare Worker がパスを振り分けるため、追加の DNS 設定は不要。
 ルートの `smashcat.dev` や既存のツールの振り分けは変更しない。
 
 `node --experimental-strip-types --test tests/*.test.mjs` でホストとアセットパスの対応を検証する。
