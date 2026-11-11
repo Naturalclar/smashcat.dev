@@ -24,6 +24,7 @@
   // に渡る (/medley-generator/ の振り分けは worker/index.ts 側の仕事)。
   "routes": [
     { "pattern": "smashcat.dev", "custom_domain": true },
-    { "pattern": "www.smashcat.dev", "custom_domain": true }
+    { "pattern": "www.smashcat.dev", "custom_domain": true },
+    { "pattern": "collage.smashcat.dev", "custom_domain": true }
   ]
 }

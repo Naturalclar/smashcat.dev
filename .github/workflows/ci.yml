@@ -35,6 +35,8 @@ jobs:
 
       - run: pnpm lint
 
+      - run: node --experimental-strip-types --test tests/*.test.mjs
+
       # tsc -b が3つの tsconfig をすべて通るため、型チェックはこれで足りる。
       - run: pnpm build
 
