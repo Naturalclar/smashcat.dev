@@ -8,7 +8,9 @@
   // `pnpm build` が必要 (deploy スクリプトが両方走らせる)。
   "assets": {
     "directory": "./dist",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    // 同じ / でもホストによって配信先が異なるため、先に Worker で判定する。
+    "run_worker_first": true
   },
 
   // Custom Domain 方式。deploy 時に Cloudflare が DNS レコードと証明書を
