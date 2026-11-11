@@ -7,7 +7,12 @@ test('コラージュのパスだけを新リポジトリの Pages へ振り分�
   const requests = []
   globalThis.fetch = async (url, init) => {
     requests.push({ url: String(url), init })
-    return new Response('collage asset', { headers: { 'content-type': 'text/javascript' } })
+    return new Response('collage asset', {
+      headers: {
+        'content-type': new URL(url).pathname.endsWith('.js') ? 'text/javascript' : 'text/html',
+        'cache-control': 'public, max-age=600',
+      },
+    })
   }
   try {
     const env = { ASSETS: { fetch: async () => new Response('profile') } }
@@ -15,6 +20,9 @@ test('コラージュのパスだけを新リポジトリの Pages へ振り分�
       const response = await worker.fetch(new Request(`https://smashcat.dev/collage${path}`), env)
       assert.equal(await response.text(), 'collage asset')
       assert.equal(requests.at(-1).url, `https://naturalclar.github.io/setli-collage${path}`)
+      if (path === '/') {
+        assert.equal(response.headers.get('cache-control'), 'public, max-age=600, no-transform')
+      }
     }
     const redirect = await worker.fetch(new Request('https://smashcat.dev/collage?from=test'), env)
     assert.equal(redirect.status, 301)

@@ -177,6 +177,11 @@ async function proxy(request: Request, url: URL, target: ProxyTarget): Promise<R
   })
 
   const outHeaders = new Headers(response.headers)
+  // コラージュは解析スクリプトを使わないため、HTML への自動挿入も防ぐ。
+  if (target.prefix === '/collage' && outHeaders.get('content-type')?.includes('text/html')) {
+    const cacheControl = outHeaders.get('cache-control')
+    outHeaders.set('cache-control', cacheControl ? `${cacheControl}, no-transform` : 'public, no-transform')
+  }
   if (target.dropLocation) {
     outHeaders.delete('location')
   } else {
