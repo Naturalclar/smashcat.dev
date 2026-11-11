@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import worker from '../worker/index.ts'
 
-test('コラージュのホストだけを新リポジトリの Pages へ振り分ける', async () => {
+test('コラージュのパスだけを新リポジトリの Pages へ振り分ける', async () => {
   const originalFetch = globalThis.fetch
   const requests = []
   globalThis.fetch = async (url, init) => {
@@ -12,10 +12,15 @@ test('コラージュのホストだけを新リポジトリの Pages へ振り�
   try {
     const env = { ASSETS: { fetch: async () => new Response('profile') } }
     for (const path of ['/', '/app.js?v=1', '/layout.js', '/style.css']) {
-      const response = await worker.fetch(new Request(`https://collage.smashcat.dev${path}`), env)
+      const response = await worker.fetch(new Request(`https://smashcat.dev/collage${path}`), env)
       assert.equal(await response.text(), 'collage asset')
       assert.equal(requests.at(-1).url, `https://naturalclar.github.io/setli-collage${path}`)
     }
+    const redirect = await worker.fetch(new Request('https://smashcat.dev/collage?from=test'), env)
+    assert.equal(redirect.status, 301)
+    assert.equal(redirect.headers.get('location'), 'https://smashcat.dev/collage/?from=test')
+    const unrelated = await worker.fetch(new Request('https://smashcat.dev/collage-other'), env)
+    assert.equal(await unrelated.text(), 'profile')
     const response = await worker.fetch(new Request('https://smashcat.dev/'), env)
     assert.equal(await response.text(), 'profile')
     assert.equal(requests.length, 4)
