@@ -18,7 +18,7 @@ pnpm run ogp      # ogp/template.html を Playwright で撮る → public/images
 pnpm run deploy   # pnpm build && wrangler deploy — `run` is required, see below
 ```
 
-There is no test suite. `pnpm build` (which runs `tsc -b` across all three project references) plus `pnpm lint` is the full verification loop — that is exactly what `.github/workflows/ci.yml` runs on pull requests. Pushing to `main` additionally runs that workflow's `deploy` job (gated on `verify` passing), so a merge ships to production.
+Worker routing regression tests run with `node --experimental-strip-types --test tests/*.test.mjs`. `pnpm build` (which runs `tsc -b` across all three project references) plus `pnpm lint` is the full verification loop — that is exactly what `.github/workflows/ci.yml` runs on pull requests. Pushing to `main` additionally runs that workflow's `deploy` job (gated on `verify` passing), so a merge ships to production.
 
 `pnpm run deploy` must keep its `run`: bare `pnpm deploy` resolves to pnpm's built-in workspace-deploy command, which shadows the script and fails with `ERR_PNPM_CANNOT_DEPLOY` since this repo is not a workspace.
 

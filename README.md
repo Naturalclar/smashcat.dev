@@ -245,3 +245,13 @@ curl -i https://avvy-deco.vercel.app/avvy-deco | head -20
 - bass-tabs は譜面を `localStorage` にしか持たない。`localStorage` はオリジン単位なので、
   **`naturalclar.github.io` 側で保存した譜面は `smashcat.dev` からは見えない**
   (消えてはおらず、別のオリジンにある)。bass-tabs 側の一覧の書き出し / 取り込みで移せる。
+
+## コラージュの専用ホスト
+
+`collage.smashcat.dev` は `Naturalclar/setli-collage` の GitHub Pages にプロキシする。
+公開側の `/app.js` などを、配信元の `/setli-collage/app.js` に対応させる。
+アプリの更新は新リポジトリの `main` への push だけで配信される。
+Cloudflare の Custom Domain と証明書はこのリポジトリの `wrangler.jsonc` で管理する。
+ルートの `smashcat.dev` や既存のツールの振り分けは変更しない。
+
+`node --experimental-strip-types --test tests/*.test.mjs` でホストとアセットパスの対応を検証する。
